@@ -12,41 +12,42 @@ var responseFields = new Dictionary<string, object>
     { "id", 1 }, { "foo", "f" }, { "bar", "b" }, { "baz", "b" }, { "quux", null }, { "corge", null }
 };
 
-var reqiestResult = new GetResourceResult
+var requestResult = new ResourceResult
 {
     Fields = requestFields
 };
 
-var responseResult = new GetResourceResult
+var responseResult = new ResourceResult
 {
     Fields = responseFields
 };
-var comparer = new GetResourceResultComparer(new string[] { "id" });
+var comparer = new ResourceResultComparer(new string[] { "id" });
 
-reqiestResult.Fields = reqiestResult.Fields
+// Remove nulls (for /create)
+requestResult.Fields = requestResult.Fields
     .Where(f => !(f.Value == null && !responseFields.ContainsKey(f.Key)))
     .ToDictionary(x => x.Key, x => x.Value);
 
-var equal = comparer.Equals(reqiestResult, responseResult);
-Console.WriteLine(equal);
+var createReqResEquals = comparer.Equals(requestResult, responseResult);
+Console.WriteLine(createReqResEquals);
 
 Console.ReadKey();
 
-class GetResourceResult
+class ResourceResult
 {
     public IDictionary<string, object> Fields { get; set; }
 }
 
-class GetResourceResultComparer : IEqualityComparer<GetResourceResult>
+class ResourceResultComparer : IEqualityComparer<ResourceResult>
 {
-    public GetResourceResultComparer(IEnumerable<string> fieldsToIgnore)
+    public ResourceResultComparer(IEnumerable<string> fieldsToIgnore)
     {
         FieldsToIgnore = fieldsToIgnore;
     }
 
     public IEnumerable<string> FieldsToIgnore { get; }
 
-    public bool Equals(GetResourceResult? x, GetResourceResult? y)
+    public bool Equals(ResourceResult? x, ResourceResult? y)
     {
         var xUniqueKeys = x.Fields.Keys.Except(y.Fields.Keys);
 
@@ -69,7 +70,7 @@ class GetResourceResultComparer : IEqualityComparer<GetResourceResult>
         return true;
     }
 
-    public int GetHashCode([DisallowNull] GetResourceResult obj)
+    public int GetHashCode([DisallowNull] ResourceResult obj)
     {
         throw new NotImplementedException();
     }
